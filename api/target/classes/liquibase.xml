@@ -19,15 +19,11 @@
         </sql>
 
         <sql>
-            insert into global_property (property, uuid ) values ('billing.cashSchemes.uuid' , uuid());
+            insert into global_property (property, uuid ) values ('billing.cash_scheme.uuid' , uuid());
         </sql>
 
         <sql>
-            insert into global_property (property, uuid ) values ('billing.insuranceTypes.uuid' , uuid());
-        </sql>
-
-        <sql>
-            insert into global_property (property, uuid ) values ('billing.serviceTypeMap', uuid());
+            insert into global_property (property, uuid ) values ('billing.insurance_types.uuid' , uuid());
         </sql>
 
     </changeSet>
@@ -525,6 +521,14 @@
                 <constraints nullable="false"/>
             </column>
 
+            <column name="payment_category" type="int">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="payment_sub_category" type="int">
+                <constraints nullable="false"/>
+            </column>
+
             <column name="ordered_by" type="int">
                 <constraints nullable="false"/>
             </column>
@@ -669,14 +673,6 @@
                 <constraints nullable="false"/>
             </column>
 
-            <column name="payment_category" type="int">
-                <constraints nullable="false"/>
-            </column>
-
-            <column name="payment_sub_category" type="int">
-                <constraints nullable="false"/>
-            </column>
-
             <column name="status" type="int">
                 <constraints nullable="false"/>
             </column>
@@ -701,13 +697,6 @@
         <addForeignKeyConstraint constraintName="fk_bl_sale_quote_line_item_price"
                                  baseTableName="bl_sale_quote_line" baseColumnNames="service_type"
                                  referencedTableName="bl_item_price" referencedColumnNames="item_price_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
-
-        <addForeignKeyConstraint constraintName="fk_bl_sale_quote_lin_payment_category"
-                                 baseTableName="bl_sale_quote_line" baseColumnNames="payment_category"
-                                 referencedTableName="concept" referencedColumnNames="concept_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
-        <addForeignKeyConstraint constraintName="fk_bl_sale_quote_line_payment_sub_category"
-                                 baseTableName="bl_sale_quote_line" baseColumnNames="payment_sub_category"
-                                 referencedTableName="concept" referencedColumnNames="concept_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
 
         <addForeignKeyConstraint constraintName="fk_bl_sale_quote_line_status"
                                  baseTableName="bl_sale_quote_line" baseColumnNames="status"
