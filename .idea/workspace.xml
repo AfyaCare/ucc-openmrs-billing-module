@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="90990833-3d12-447a-9713-7b013c74b77e" name="Default Changelist" comment="" />
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="importingSettings">
+      <MavenImportingSettings>
+        <option name="vmOptionsForImporter" value="-Xmx768m" />
+      </MavenImportingSettings>
+    </option>
+  </component>
+  <component name="ProjectId" id="1VWv9KnQCoeYrTvvjPuZUfdAVPp" />
+  <component name="PropertiesComponent">
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="aspect.path.notification.shown" value="true" />
+    <property name="last_opened_file_path" value="D:/USB Drive/Mirembe/Mirembe" />
+    <property name="settings.editor.selected.configurable" value="MavenSettings" />
+  </component>
+  <component name="RestServicesNavigator">
+    <treeState>
+      <expand>
+        <path>
+          <item name="Found 66 services " type="fcff1e1b:RestServiceStructure$RootNode" />
+        </path>
+        <path>
+          <item name="Found 66 services " type="fcff1e1b:RestServiceStructure$RootNode" />
+          <item name="billingservices-omod" type="c588b436:RestServiceStructure$ProjectNode" />
+        </path>
+      </expand>
+      <select />
+    </treeState>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="90990833-3d12-447a-9713-7b013c74b77e" name="Default Changelist" comment="" />
+      <created>1577381513084</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1577381513084</updated>
+      <workItem from="1577381521494" duration="930000" />
+      <workItem from="1577382634418" duration="5742000" />
+      <workItem from="1577455313462" duration="4718000" />
+      <workItem from="1577520063848" duration="5158000" />
+      <workItem from="1577532028231" duration="11181000" />
+      <workItem from="1577781208179" duration="4524000" />
+      <workItem from="1577948161290" duration="11321000" />
+      <workItem from="1577971500537" duration="1614000" />
+      <workItem from="1578039830427" duration="21202000" />
+      <workItem from="1578119930271" duration="7088000" />
+      <workItem from="1578202676882" duration="21725000" />
+      <workItem from="1578291658800" duration="5169000" />
+      <workItem from="1578307302899" duration="1425000" />
+      <workItem from="1578313204480" duration="1285000" />
+      <workItem from="1578382227536" duration="1144000" />
+      <workItem from="1578399790283" duration="696000" />
+      <workItem from="1578426198810" duration="580000" />
+      <workItem from="1578471701515" duration="579000" />
+      <workItem from="1578474727057" duration="1205000" />
+      <workItem from="1578489879284" duration="2580000" />
+      <workItem from="1578499858784" duration="1440000" />
+      <workItem from="1578547327486" duration="1138000" />
+      <workItem from="1578594693189" duration="1063000" />
+      <workItem from="1578598207312" duration="569000" />
+      <workItem from="1578631961273" duration="1710000" />
+      <workItem from="1578644473113" duration="561000" />
+      <workItem from="1578651062694" duration="1154000" />
+      <workItem from="1578676117060" duration="578000" />
+      <workItem from="1578726757067" duration="1589000" />
+      <workItem from="1578741639379" duration="3371000" />
+      <workItem from="1578804490566" duration="935000" />
+      <workItem from="1578896603057" duration="6525000" />
+      <workItem from="1578981241493" duration="6701000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+</project>

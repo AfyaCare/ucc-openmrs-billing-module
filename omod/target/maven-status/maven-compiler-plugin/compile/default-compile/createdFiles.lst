@@ -1,0 +1,11 @@
+org\openmrs\module\billingservices\controller\SaleOrderController.class
+org\openmrs\module\billingservices\controller\DiscountController.class
+org\openmrs\module\billingservices\controller\ListVersionController.class
+org\openmrs\module\billingservices\controller\MainController.class
+org\openmrs\module\billingservices\util\Constants.class
+org\openmrs\module\billingservices\controller\SaleQuotationController.class
+org\openmrs\module\billingservices\controller\DiscountCriteriaController.class
+org\openmrs\module\billingservices\controller\FinancialPeriodController.class
+org\openmrs\module\billingservices\controller\ServiceTypeController.class
+org\openmrs\module\billingservices\controller\ItemPriceController.class
+org\openmrs\module\billingservices\controller\PaymentController.class

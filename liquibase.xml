@@ -1,0 +1,1192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+    <!-- See http://www.liquibase.org/manual/home#available_database_refactorings for a list of supported elements and attributes-->
+
+    <!-- Adding a global property -->
+    <changeSet id="billing_global_property" author="Eric Mwailunga" dbms="mysql">
+        <comment>Adding properties for billing module into global property table.</comment>
+
+        <sql>
+            insert into global_property (property, uuid ) values ('billing.cash.uuid' , uuid());
+        </sql>
+
+        <sql>
+            insert into global_property (property, uuid ) values ('billing.insurance.uuid' , uuid());
+        </sql>
+
+        <sql>
+            insert into global_property (property, uuid ) values ('billing.cashSchemes.uuid' , uuid());
+        </sql>
+
+        <sql>
+            insert into global_property (property, uuid ) values ('billing.insuranceTypes.uuid' , uuid());
+        </sql>
+
+        <sql>
+            insert into global_property (property, uuid ) values ('billing.serviceTypeMap', uuid());
+        </sql>
+
+    </changeSet>
+
+
+    <!-- A table grouping hospital service in their types for managing billing schemes -->
+    <changeSet id="billing_service_type" author="Eric Mwailunga" dbms="mysql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="bl_service_type" />
+            </not>
+        </preConditions>
+        <comment>Creating billing service type table</comment>
+        <createTable tableName="bl_service_type">
+            <column name="service_type_id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"  unique="true"/>
+            </column>
+
+            <column name="creator" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date_created" type="datetime">
+                <constraints nullable="false" />
+            </column>
+            <column name="changed_by" type="int" />
+            <column name="date_changed" type="datetime" />
+            <column name="retired" type="smallint" defaultValueNumeric="0">
+                <constraints nullable="false" />
+            </column>
+            <column name="uuid" type="char(58)">
+                <constraints nullable="false" unique="true" />
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint constraintName="fk_bl_service_type_creator"
+                                 baseTableName="bl_service_type" baseColumnNames="creator"
+                                 referencedTableName="users" referencedColumnNames="user_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_bl_service_type_changed_by"
+                                 baseTableName="bl_service_type" baseColumnNames="changed_by"
+                                 referencedTableName="users" referencedColumnNames="user_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+        <createIndex indexName="ind_bl_service_type_service_type_id"
+                     schemaName="openmrs"
+                     tableName="bl_service_type"
+                     unique="true">
+            <column name="service_type_id" type="int"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_service_type_date_created"
+                     schemaName="openmrs"
+                     tableName="bl_service_type">
+            <column name="date_created" type="datetime"/>
+        </createIndex>
+        <createIndex indexName="ind_bl_service_type_retired"
+                     schemaName="openmrs"
+                     tableName="bl_service_type">
+            <column name="retired" type="smallint"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_service_type_uuid"
+                     schemaName="openmrs"
+                     tableName="bl_service_type"
+                     unique="true">
+            <column name="uuid" type="char"/>
+        </createIndex>
+
+        <!--sql>
+            insert into bl_service_type (name, creator, date_created, uuid ) values ('OPD' , '4', now(), uuid());
+        </sql>
+
+        <sql>
+            insert into bl_service_type (name, creator, date_created, uuid ) values ('Dental' , '4', now(), uuid());
+        </sql-->
+
+        <sql>
+            insert into bl_service_type (name, creator, date_created, uuid ) values ('General' , '4', now(), uuid());
+        </sql>
+
+        <sql>
+            insert into bl_service_type (name, creator, date_created, uuid ) values ('Laboratory' , '4', now(), uuid());
+        </sql>
+
+        <sql>
+            insert into bl_service_type (name, creator, date_created, uuid ) values ('Pharmaceutical' , '4', now(), uuid());
+        </sql>
+
+        <sql>
+            insert into bl_service_type (name, creator, date_created, uuid ) values ('Procedure' , '4', now(), uuid());
+        </sql>
+
+        <sql>
+            insert into bl_service_type (name, creator, date_created, uuid ) values ('Radiology' , '4', now(), uuid());
+        </sql>
+
+
+    </changeSet>
+
+    <!-- A table for storing financial periods -->
+    <changeSet id="billing_financial_period" author="Eric Mwailunga" dbms="mysql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="bl_financial_period" />
+            </not>
+        </preConditions>
+        <comment>Creating a table for storing a financial periods.</comment>
+        <createTable tableName="bl_financial_period">
+            <column name="period_id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"  unique="true"/>
+            </column>
+            <column name="start_date" type="datetime">
+                <constraints nullable="false" />
+            </column>
+            <column name="end_date" type="datetime">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="creator" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date_created" type="datetime">
+                <constraints nullable="false" />
+            </column>
+            <column name="changed_by" type="int" />
+            <column name="date_changed" type="datetime" />
+            <column name="retired" type="smallint" defaultValueNumeric="0">
+                <constraints nullable="false" />
+            </column>
+            <column name="uuid" type="char(58)">
+                <constraints nullable="false" unique="true" />
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint constraintName="fk_bl_financial_period_creator"
+                                 baseTableName="bl_financial_period" baseColumnNames="creator"
+                                 referencedTableName="users" referencedColumnNames="user_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_bl_financial_period_changed_by"
+                                 baseTableName="bl_financial_period" baseColumnNames="changed_by"
+                                 referencedTableName="users" referencedColumnNames="user_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+
+        <createIndex indexName="ind_bl_financial_period_period_id"
+                     schemaName="openmrs"
+                     tableName="bl_financial_period"
+                     unique="true">
+            <column name="period_id" type="int"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_financial_period_name"
+                     schemaName="openmrs"
+                     tableName="bl_financial_period">
+            <column name="name" type="char"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_financial_period_retired"
+                     schemaName="openmrs"
+                     tableName="bl_financial_period">
+            <column name="retired" type="smallint"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_financial_period_uuid"
+                     schemaName="openmrs"
+                     tableName="bl_financial_period"
+                     unique="true">
+            <column name="uuid" type="char"/>
+        </createIndex>
+
+    </changeSet>
+
+    <!-- A table for storing price lists for financial periods as a base to price for items [products and services] -->
+    <changeSet id="billing_price_list_version" author="Eric Mwailunga" dbms="mysql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="bl_price_list_version" />
+            </not>
+        </preConditions>
+        <comment>Creating a table for storing price lists.</comment>
+        <createTable tableName="bl_price_list_version">
+            <column name="list_id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="financial_period" type="int">
+                <constraints nullable="false"  unique="false"/>
+            </column>
+            <column name="version_name" type="varchar(255)">
+                <constraints nullable="false"  unique="false"/>
+            </column>
+            <column name="active" type="smallint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date_approved" type="datetime">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="creator" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date_created" type="datetime">
+                <constraints nullable="false" />
+            </column>
+            <column name="changed_by" type="int" />
+            <column name="date_changed" type="datetime" />
+            <column name="retired" type="smallint" defaultValueNumeric="0">
+                <constraints nullable="false" />
+            </column>
+            <column name="uuid" type="char(58)">
+                <constraints nullable="false" unique="true" />
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint constraintName="fk_bl_price_list_version_financial_period"
+                                 baseTableName="bl_price_list_version" baseColumnNames="financial_period"
+                                 referencedTableName="bl_financial_period" referencedColumnNames="period_id" onDelete="CASCADE" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_bl_price_list_version_creator"
+                                 baseTableName="bl_price_list_version" baseColumnNames="creator"
+                                 referencedTableName="users" referencedColumnNames="user_id" onDelete="CASCADE" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_bl_price_list_version_changed_by"
+                                 baseTableName="bl_price_list_version" baseColumnNames="changed_by"
+                                 referencedTableName="users" referencedColumnNames="user_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+
+        <createIndex indexName="ind_bl_price_list_version_list_id"
+                     schemaName="openmrs"
+                     tableName="bl_price_list_version"
+                     unique="true">
+            <column name="list_id" type="int"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_price_list_version_version_name"
+                     schemaName="openmrs"
+                     tableName="bl_price_list_version">
+            <column name="version_name" type="char"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_price_list_version_active"
+                     schemaName="openmrs"
+                     tableName="bl_price_list_version">
+            <column name="active" type="smallint"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_price_list_version_uuid"
+                     schemaName="openmrs"
+                     tableName="bl_price_list_version"
+                     unique="true">
+            <column name="uuid" type="char"/>
+        </createIndex>
+
+    </changeSet>
+
+    <!-- A table to store prices for items and services -->
+    <changeSet id="billing_item_price" author="Eric Mwailunga" dbms="mysql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="bl_item_price" />
+            </not>
+        </preConditions>
+        <comment>Creating table to store prices for items or services. </comment>
+        <createTable tableName="bl_item_price">
+            <column name="item_price_id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+
+            <column name="price_list_version" type="int">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="item" type="int">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="service_type" type="int">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="payment_category" type="int">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="payment_sub_category" type="int">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="selling_price" type="double">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="creator" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date_created" type="datetime">
+                <constraints nullable="false" />
+            </column>
+            <column name="changed_by" type="int" />
+            <column name="date_changed" type="datetime" />
+            <column name="retired" type="smallint" defaultValueNumeric="0">
+                <constraints nullable="false" />
+            </column>
+            <column name="uuid" type="char(58)">
+                <constraints nullable="false" unique="true" />
+            </column>
+
+        </createTable>
+
+        <addForeignKeyConstraint constraintName="fk_bl_item_price_service_type"
+                                 baseTableName="bl_item_price" baseColumnNames="service_type"
+                                 referencedTableName="bl_service_type" referencedColumnNames="service_type_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+
+        <addForeignKeyConstraint constraintName="fk_bl_item_price_payment_category"
+                                 baseTableName="bl_item_price" baseColumnNames="payment_category"
+                                 referencedTableName="concept" referencedColumnNames="concept_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_bl_item_price_payment_sub_category"
+                                 baseTableName="bl_item_price" baseColumnNames="payment_sub_category"
+                                 referencedTableName="concept" referencedColumnNames="concept_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+
+        <addForeignKeyConstraint constraintName="fk_bl_item_price_price_list_version"
+                                 baseTableName="bl_item_price" baseColumnNames="price_list_version"
+                                 referencedTableName="bl_price_list_version" referencedColumnNames="list_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+
+        <addForeignKeyConstraint constraintName="fk_bl_item_price_creator"
+                                 baseTableName="bl_item_price" baseColumnNames="creator"
+                                 referencedTableName="users" referencedColumnNames="user_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_bl_item_price_changed_by"
+                                 baseTableName="bl_item_price" baseColumnNames="changed_by"
+                                 referencedTableName="users" referencedColumnNames="user_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+
+        <createIndex indexName="ind_bl_item_price_item_price_id"
+                     schemaName="openmrs"
+                     tableName="bl_item_price"
+                     unique="true">
+            <column name="item_price_id" type="int"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_item_price_item"
+                     schemaName="openmrs"
+                     tableName="bl_item_price">
+            <column name="item" type="int"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_item_price_service_type"
+                     schemaName="openmrs"
+                     tableName="bl_item_price">
+            <column name="service_type" type="int"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_item_price_payment_category"
+                     schemaName="openmrs"
+                     tableName="bl_item_price">
+            <column name="payment_category" type="int"/>
+        </createIndex>
+
+
+        <createIndex indexName="ind_bl_item_price_date_created"
+                     schemaName="openmrs"
+                     tableName="bl_item_price">
+            <column name="date_created" type="datetime"/>
+        </createIndex>
+        <createIndex indexName="ind_bl_item_price_retired"
+                     schemaName="openmrs"
+                     tableName="bl_item_price">
+            <column name="retired" type="smallint"/>
+        </createIndex>
+
+
+        <createIndex indexName="ind_bl_item_price_uuid"
+                     schemaName="openmrs"
+                     tableName="bl_item_price">
+            <column name="uuid" type="char"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- A table to store status code for quotes -->
+    <changeSet id="billing_quote_status_code" author="Eric Mwailunga" dbms="mysql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="bl_quote_status_code" />
+            </not>
+        </preConditions>
+        <comment>Creating table to store status codes for quote. </comment>
+        <createTable tableName="bl_quote_status_code">
+            <column name="status_code_id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+
+            <column name="name" type="varchar(80)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="quote_type" type="char(10)">
+                <constraints nullable="false"/>
+            </column>
+
+
+            <column name="creator" type="int">
+                <constraints nullable="false" />
+            </column>
+            <column name="date_created" type="datetime">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="changed_by" type="int"/>
+            <column name="date_changed" type="datetime" />
+            <column name="retired" type="smallint" defaultValueNumeric="0">
+                <constraints nullable="false" />
+            </column>
+            <column name="uuid" type="char(58)">
+                <constraints nullable="false" unique="true" />
+            </column>
+
+        </createTable>
+
+
+        <addForeignKeyConstraint  constraintName="fk_bl_quote_status_code_creator"
+                                  baseTableName="bl_quote_status_code" baseColumnNames="creator"
+                                  referencedTableName="users" referencedColumnNames="user_id" onDelete="CASCADE" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint  constraintName="fk_bl_quote_status_code_changed_by"
+                                  baseTableName="bl_quote_status_code" baseColumnNames="changed_by"
+                                  referencedTableName="users" referencedColumnNames="user_id" onDelete="CASCADE" onUpdate="CASCADE"/>
+
+        <createIndex indexName="ind_bl_quote_status_code_status_code_id"
+                     schemaName="openmrs"
+                     tableName="bl_quote_status_code">
+            <column name="status_code_id" type="int"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_quote_status_code_quote_type"
+                     schemaName="openmrs"
+                     tableName="bl_quote_status_code">
+            <column name="quote_type" type="int"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_quote_status_code_date_created"
+                     schemaName="openmrs"
+                     tableName="bl_quote_status_code">
+            <column name="date_created" type="datetime"/>
+        </createIndex>
+        <createIndex indexName="ind_bl_quote_status_code_retired"
+                     schemaName="openmrs"
+                     tableName="bl_quote_status_code">
+            <column name="retired" type="smallint"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_quote_status_code_uuid"
+                     schemaName="openmrs"
+                     tableName="bl_quote_status_code">
+            <column name="uuid" type="char"/>
+        </createIndex>
+
+
+        <sql>
+            insert into bl_quote_status_code (name, quote_type, creator, date_created, uuid ) values ('New' , 'Main', '4', now(), uuid() );
+        </sql>
+        <sql>
+            insert into bl_quote_status_code (name, quote_type, creator, date_created, uuid ) values ('Partially confirmed (PC)' , 'Main', '4', now(), uuid() );
+        </sql>
+        <sql>
+            insert into bl_quote_status_code (name, quote_type, creator, date_created, uuid ) values ('Fully confirmed (FC)' , 'Main', '4', now(), uuid() );
+        </sql>
+        <sql>
+            insert into bl_quote_status_code (name, quote_type, creator, date_created, uuid ) values ('Cancelled' , 'Main', '4', now(), uuid() );
+        </sql>
+
+
+        <sql>
+            insert into bl_quote_status_code (name, quote_type, creator, date_created, uuid ) values ('New' , 'Line', '4', now(), uuid() );
+        </sql>
+        <sql>
+            insert into bl_quote_status_code (name, quote_type, creator, date_created, uuid ) values ('Confirmed' , 'Line', '4', now(), uuid() );
+        </sql>
+        <sql>
+            insert into bl_quote_status_code (name, quote_type, creator, date_created, uuid ) values ('Cancelled' , 'Line', '4', now(), uuid() );
+        </sql>
+
+    </changeSet>
+
+    <!-- A table to store sales quote for ordered items and services -->
+    <changeSet id="billing_sale_quote" author="Eric Mwailunga" dbms="mysql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="bl_sale_quote" />
+            </not>
+        </preConditions>
+        <comment>Creating table to store quotes for items or services. </comment>
+        <createTable tableName="bl_sale_quote">
+            <column name="quote_id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+
+            <column name="patient" type="int">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="visit" type="int">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="ordered_by" type="int">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="total_quote" type="double" defaultValueNumeric="0.0">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="payable_amount" type="double" defaultValueNumeric="0.0">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="status" type="int">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="discounted" type="smallint" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="date_ordered" type="datetime">
+                <constraints nullable="false" />
+            </column>
+            <column name="changed_by" type="int" />
+            <column name="date_changed" type="datetime" />
+            <column name="uuid" type="char(58)">
+                <constraints nullable="false" unique="true" />
+            </column>
+
+        </createTable>
+
+        <addForeignKeyConstraint constraintName="fk_bl_sale_quote_patient"
+                                 baseTableName="bl_sale_quote" baseColumnNames="patient"
+                                 referencedTableName="patient" referencedColumnNames="patient_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_bl_sale_quote_visit"
+                                 baseTableName="bl_sale_quote" baseColumnNames="visit"
+                                 referencedTableName="visit" referencedColumnNames="visit_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+
+        <addForeignKeyConstraint constraintName="fk_bl_sale_quote_payment_category"
+                                 baseTableName="bl_sale_quote" baseColumnNames="payment_category"
+                                 referencedTableName="concept" referencedColumnNames="concept_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_bl_sale_quote_payment_sub_category"
+                                 baseTableName="bl_sale_quote" baseColumnNames="payment_sub_category"
+                                 referencedTableName="concept" referencedColumnNames="concept_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+
+        <addForeignKeyConstraint constraintName="fk_bl_sale_quote_ordered_by"
+                                 baseTableName="bl_sale_quote" baseColumnNames="ordered_by"
+                                 referencedTableName="users" referencedColumnNames="user_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_bl_sale_quote_status"
+                                 baseTableName="bl_sale_quote" baseColumnNames="status"
+                                 referencedTableName="bl_quote_status_code" referencedColumnNames="status_code_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_bl_sale_quote_changed_by"
+                                 baseTableName="bl_sale_quote" baseColumnNames="changed_by"
+                                 referencedTableName="users" referencedColumnNames="user_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+
+        <createIndex indexName="ind_bl_sale_quote_quote_id"
+                     schemaName="openmrs"
+                     tableName="bl_sale_quote">
+            <column name="quote_id" type="int"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_sale_quote_patient"
+                     schemaName="openmrs"
+                     tableName="bl_sale_quote">
+            <column name="patient" type="int"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_sale_quote_visit"
+                     schemaName="openmrs"
+                     tableName="bl_sale_quote">
+            <column name="visit" type="int"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_sale_quote_ordered_by"
+                     schemaName="openmrs"
+                     tableName="bl_sale_quote">
+            <column name="ordered_by" type="int"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_sale_quote_status"
+                     schemaName="openmrs"
+                     tableName="bl_sale_quote">
+            <column name="status" type="int"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_sale_quote_date_ordered"
+                     schemaName="openmrs"
+                     tableName="bl_sale_quote">
+            <column name="date_ordered" type="datetime"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_sale_quote_uuid"
+                     schemaName="openmrs"
+                     tableName="bl_sale_quote">
+            <column name="uuid" type="char"/>
+        </createIndex>
+    </changeSet>
+
+
+    <!-- A table to store quotation lines for a certain quote for service or items -->
+    <changeSet id="billing_sale_quote_line" author="Eric Mwailunga" dbms="mysql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="bl_sale_quote_line" />
+            </not>
+        </preConditions>
+        <comment>Creating table to store prices for items or services. </comment>
+        <createTable tableName="bl_sale_quote_line">
+            <column name="quote_line_id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+
+            <column name="sale_quote" type="int">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="item" type="int">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="service_type" type="int">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="item_price" type="int">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="quantity" type="int">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="unit" type="char">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="quoted_amount" type="double" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="payable_amount" type="double" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="payment_category" type="int">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="payment_sub_category" type="int">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="status" type="int">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="date_created" type="datetime">
+                <constraints nullable="false" />
+            </column>
+            <column name="changed_by" type="int" />
+            <column name="date_changed" type="datetime" />
+            <column name="uuid" type="char(58)">
+                <constraints nullable="false" unique="true" />
+            </column>
+
+        </createTable>
+
+        <addForeignKeyConstraint constraintName="fk_bl_sale_quote_line_sale_quote"
+                                 baseTableName="bl_sale_quote_line" baseColumnNames="sale_quote"
+                                 referencedTableName="bl_sale_quote" referencedColumnNames="quote_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_bl_sale_quote_line_service_type"
+                                 baseTableName="bl_sale_quote_line" baseColumnNames="service_type"
+                                 referencedTableName="bl_service_type" referencedColumnNames="service_type_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_bl_sale_quote_line_item_price"
+                                 baseTableName="bl_sale_quote_line" baseColumnNames="service_type"
+                                 referencedTableName="bl_item_price" referencedColumnNames="item_price_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+
+        <addForeignKeyConstraint constraintName="fk_bl_sale_quote_lin_payment_category"
+                                 baseTableName="bl_sale_quote_line" baseColumnNames="payment_category"
+                                 referencedTableName="concept" referencedColumnNames="concept_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_bl_sale_quote_line_payment_sub_category"
+                                 baseTableName="bl_sale_quote_line" baseColumnNames="payment_sub_category"
+                                 referencedTableName="concept" referencedColumnNames="concept_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+
+        <addForeignKeyConstraint constraintName="fk_bl_sale_quote_line_status"
+                                 baseTableName="bl_sale_quote_line" baseColumnNames="status"
+                                 referencedTableName="bl_quote_status_code" referencedColumnNames="status_code_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_bl_sale_quote_line_changed_by"
+                                 baseTableName="bl_sale_quote_line" baseColumnNames="changed_by"
+                                 referencedTableName="users" referencedColumnNames="user_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+
+        <createIndex indexName="ind_bl_sale_quote_line_quote_line_id"
+                     schemaName="openmrs"
+                     tableName="bl_sale_quote_line">
+            <column name="quote_line_id" type="int"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_sale_quote_line_sale_quote"
+                     schemaName="openmrs"
+                     tableName="bl_sale_quote_line">
+            <column name="sale_quote" type="int"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_sale_quote_line_item"
+                     schemaName="openmrs"
+                     tableName="bl_sale_quote_line">
+            <column name="item" type="int"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_sale_quote_line_service_type"
+                     schemaName="openmrs"
+                     tableName="bl_sale_quote_line">
+            <column name="service_type" type="int"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_sale_quote_line_status"
+                     schemaName="openmrs"
+                     tableName="bl_sale_quote_line">
+            <column name="status" type="int"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_sale_quote_line_date_created"
+                     schemaName="openmrs"
+                     tableName="bl_sale_quote_line">
+            <column name="date_created" type="datetime"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_sale_quote_line_uuid"
+                     schemaName="openmrs"
+                     tableName="bl_sale_quote_line">
+            <column name="uuid" type="char"/>
+        </createIndex>
+    </changeSet>
+
+
+    <!-- A table to store discount criteria -->
+    <changeSet id="billing_discount_criteria" author="Eric Mwailunga" dbms="mysql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="bl_discount_criteria" />
+            </not>
+        </preConditions>
+        <comment>Creating table to store discount criteria list. </comment>
+        <createTable tableName="bl_discount_criteria">
+            <column name="criteria_no" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+
+            <column name="name" type="varchar(80)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+
+            <column name="description" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="creator" type="int">
+                <constraints nullable="false" />
+            </column>
+            <column name="date_created" type="datetime">
+                <constraints nullable="false" />
+            </column>
+            <column name="changed_by" type="int" />
+            <column name="date_changed" type="datetime" />
+            <column name="retired" type="smallint" defaultValueNumeric="0">
+                <constraints nullable="false" />
+            </column>
+            <column name="uuid" type="char(58)">
+                <constraints nullable="false" unique="true" />
+            </column>
+
+        </createTable>
+
+        <addForeignKeyConstraint constraintName="fk_bl_discount_criteria_creator"
+                                 baseTableName="bl_discount_criteria" baseColumnNames="creator"
+                                 referencedTableName="users" referencedColumnNames="user_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_bl_discount_criteria_changed_by"
+                                 baseTableName="bl_discount_criteria" baseColumnNames="changed_by"
+                                 referencedTableName="users" referencedColumnNames="user_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+
+
+        <createIndex indexName="ind_bl_discount_criteria_criteria_no"
+                     schemaName="openmrs"
+                     tableName="bl_discount_criteria">
+            <column name="criteria_no" type="int"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_discount_criteria_date_created"
+                     schemaName="openmrs"
+                     tableName="bl_discount_criteria">
+            <column name="date_created" type="datetime"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_discount_criteria_retired"
+                     schemaName="openmrs"
+                     tableName="bl_discount_criteria">
+            <column name="retired" type="smallint"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_sale_quote_line_uuid"
+                     schemaName="openmrs"
+                     tableName="bl_discount_criteria">
+            <column name="uuid" type="char"/>
+        </createIndex>
+    </changeSet>
+
+
+    <!-- A table for storing discount details for quotations created -->
+    <changeSet id="billing_discount" author="Eric Mwailunga" dbms="mysql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="bl_discount" />
+            </not>
+        </preConditions>
+        <comment>Creating billing service type table</comment>
+        <createTable tableName="bl_discount">
+            <column name="discount_id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="quote_line" type="int">
+                <constraints nullable="false"  unique="false"/>
+            </column>
+            <column name="original_quoted_amount" type="double" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="proposed_discount_amount" type="double" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="approved_discount_amount" type="double" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="discount_criteria" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="initiated_by" type="int">
+                <constraints nullable="false"  unique="false"/>
+            </column>
+            <column name="date_created" type="datetime">
+                <constraints nullable="false" />
+            </column>
+            <column name="approved" type="smallint" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="approved_by" type="int">
+                <constraints nullable="true"  unique="false"/>
+            </column>
+            <column name="date_approved" type="datetime">
+                <constraints nullable="true" />
+            </column>
+            <column name="changed_by" type="int" />
+            <column name="date_changed" type="datetime" />
+            <column name="uuid" type="char(58)">
+                <constraints nullable="false" unique="true" />
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint constraintName="fk_bl_discount_discount_criteria"
+                                 baseTableName="bl_discount" baseColumnNames="discount_criteria"
+                                 referencedTableName="bl_discount_criteria" referencedColumnNames="criteria_no"  onDelete="CASCADE" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_bl_discount_initiated_by"
+                                 baseTableName="bl_discount" baseColumnNames="initiated_by"
+                                 referencedTableName="users" referencedColumnNames="user_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_bl_discount_approved_by"
+                                 baseTableName="bl_discount" baseColumnNames="approved_by"
+                                 referencedTableName="users" referencedColumnNames="user_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+
+        <createIndex indexName="ind_bl_discount_discount_id"
+                     schemaName="openmrs"
+                     tableName="bl_discount"
+                     unique="true">
+            <column name="discount_id" type="int"/>
+        </createIndex>
+        <createIndex indexName="ind_bl_discount_quote_line"
+                     schemaName="openmrs"
+                     tableName="bl_discount"
+                     unique="true">
+            <column name="quote_line" type="int"/>
+        </createIndex>
+        <createIndex indexName="ind_bl_discount_discount_criteria"
+                     schemaName="openmrs"
+                     tableName="bl_discount"
+                     unique="true">
+            <column name="discount_criteria" type="int"/>
+        </createIndex>
+
+        <createIndex indexName="ind_bl_discount_date_created"
+                     schemaName="openmrs"
+                     tableName="bl_discount"
+                     unique="true">
+            <column name="date_created" type="datetime"/>
+        </createIndex>
+        <createIndex indexName="ind_bl_discount_approved"
+                     schemaName="openmrs"
+                     tableName="bl_discount"
+                     unique="true">
+            <column name="approved" type="smallint"/>
+        </createIndex>
+        <createIndex indexName="ind_bl_discount_uuid"
+                     schemaName="openmrs"
+                     tableName="bl_discount"
+                     unique="true">
+            <column name="uuid" type="char"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- A table for storing confirmed quotations (sales orders). -->
+    <changeSet id="billing_sale_order_by_quote" author="Eric Mwailunga" dbms="mysql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="bl_sale_order_by_quote" />
+            </not>
+        </preConditions>
+        <comment>Creating table to store confirmed quotations. </comment>
+        <createTable tableName="bl_sale_order_by_quote">
+            <column name="soq_no" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+
+            <column name="dated_sale_id" type="varchar(255)">
+                <constraints nullable="false"  unique="true"/>
+            </column>
+
+            <column name="sale_quote" type="int">
+                <constraints nullable="false"  unique="false"/>
+            </column>
+
+            <column name="payment_method" type="varchar(80)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="payable_amount" type="double">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="paid_amount" type="double">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="debt_amount" type="double">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="installment_frequency" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="creator" type="int">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="date_created" type="datetime">
+                <constraints nullable="false" />
+            </column>
+
+            <column name="uuid" type="char(58)">
+                <constraints nullable="false" unique="true" />
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint constraintName="fk_bl_sale_order_by_quote_sale_quote"
+                                 baseTableName="bl_sale_order_by_quote" baseColumnNames="sale_quote"
+                                 referencedTableName="bl_sale_quote" referencedColumnNames="quote_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_bl_sale_order_by_quote_creator"
+                                 baseTableName="bl_sale_order_by_quote" baseColumnNames="creator"
+                                 referencedTableName="users" referencedColumnNames="user_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+
+        <createIndex indexName="ind_bl_sale_order_by_quote_dated_sale_id"
+                     schemaName="openmrs"
+                     tableName="bl_sale_order_by_quote"
+                     unique="true">
+            <column name="dated_sale_id" type="char"/>
+        </createIndex>
+        <createIndex indexName="ind_bl_sale_order_by_quote_sale_quote"
+                     schemaName="openmrs"
+                     tableName="bl_sale_order_by_quote">
+            <column name="sale_quote" type="int"/>
+        </createIndex>
+        <createIndex indexName="ind_bl_sale_order_by_quote_creator"
+                     schemaName="openmrs"
+                     tableName="bl_sale_order_by_quote">
+            <column name="creator" type="int"/>
+        </createIndex>
+        <createIndex indexName="ind_bl_sale_order_by_quote_paid_amount"
+                     schemaName="openmrs"
+                     tableName="bl_sale_order_by_quote">
+            <column name="paid_amount" type="char"/>
+        </createIndex>
+        <createIndex indexName="ind_bl_sale_order_by_quote_debt_amount"
+                     schemaName="openmrs"
+                     tableName="bl_sale_order_by_quote">
+            <column name="debt_amount" type="char"/>
+        </createIndex>
+        <createIndex indexName="ind_bl_sale_order_by_quote_installment_frequency"
+                     schemaName="openmrs"
+                     tableName="bl_sale_order_by_quote">
+            <column name="installment_frequency" type="char"/>
+        </createIndex>
+        <createIndex indexName="ind_bl_sale_order_by_quote_date_created"
+                     schemaName="openmrs"
+                     tableName="bl_sale_order_by_quote">
+            <column name="creator" type="int"/>
+        </createIndex>
+        <createIndex indexName="ind_bl_sale_order_by_quote_uuid"
+                     schemaName="openmrs"
+                     tableName="bl_discount"
+                     unique="true">
+            <column name="uuid" type="char"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- A table for storing sale orders derived from quotes by line. -->
+    <changeSet id="billing_sale_order_by_quote_line" author="Eric Mwailunga" dbms="mysql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="bl_sale_order_by_quote_line" />
+            </not>
+        </preConditions>
+        <comment>Creating table to store confirmed quotations by their lines. </comment>
+        <createTable tableName="bl_sale_order_by_quote_line">
+            <column name="soql_no" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+
+            <column name="sale_order_quote" type="int">
+                <constraints nullable="false"  unique="false"/>
+            </column>
+
+            <column name="quote_line" type="int">
+                <constraints nullable="false"  unique="false"/>
+            </column>
+
+            <column name="paid_amount" type="double" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="debt_amount" type="double" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+
+            <!-- <column name="received_by" type="int">
+                <constraints nullable="true"/>
+            </column> -->
+
+            <column name="date_created" type="datetime">
+                <constraints nullable="false" />
+            </column>
+            <column name="uuid" type="char(58)">
+                <constraints nullable="false" unique="true" />
+            </column>
+
+        </createTable>
+
+        <addForeignKeyConstraint constraintName="fk_bl_sale_order_by_quote_line_sale_order_quote"
+                                 baseTableName="bl_sale_order_by_quote_line" baseColumnNames="sale_order_quote"
+                                 referencedTableName="bl_sale_order_by_quote" referencedColumnNames="soq_no"  onDelete="CASCADE" onUpdate="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_bl_sale_order_by_quote_line_quote_line"
+                                 baseTableName="bl_sale_order_by_quote_line" baseColumnNames="quote_line"
+                                 referencedTableName="bl_sale_quote_line" referencedColumnNames="quote_line_id"  onDelete="CASCADE" onUpdate="CASCADE"/>
+        <!-- <addForeignKeyConstraint constraintName="fk_bl_sale_order_by_quote_line_received_by"
+                                 baseTableName="bl_sale_order_by_quote_line" baseColumnNames="received_by"
+                                 referencedTableName="users" referencedColumnNames="user_id"  onDelete="CASCADE" onUpdate="CASCADE"/> -->
+
+        <createIndex indexName="ind_bl_sale_order_by_quote_line_soql_no"
+                     schemaName="openmrs"
+                     tableName="bl_sale_order_by_quote_line"
+                     unique="true">
+            <column name="soql_no" type="int"/>
+        </createIndex>
+        <createIndex indexName="ind_bl_sale_order_by_quote_line_quote_line"
+                     schemaName="openmrs"
+                     tableName="bl_sale_order_by_quote_line"
+                     unique="true">
+            <column name="quote_line" type="int"/>
+        </createIndex>
+        <createIndex indexName="ind_bl_sale_order_by_quote_line_paid_amount"
+                     schemaName="openmrs"
+                     tableName="bl_sale_order_by_quote_line">
+            <column name="paid_amount" type="double"/>
+        </createIndex>
+        <!-- <createIndex indexName="ind_bl_sale_order_by_quote_line_debt_amount"
+                     schemaName="openmrs"
+                     tableName="bl_sale_order_by_quote_line">
+            <column name="debt_amount" type="double"/>
+        </createIndex>
+        <createIndex indexName="ind_bl_sale_order_by_quote_line_received_by"
+                     schemaName="openmrs"
+                     tableName="bl_sale_order_by_quote_line">
+            <column name="received_by" type="int"/>
+        </createIndex>-->
+        <createIndex indexName="ind_bl_sale_order_by_quote_line_uuid"
+                     schemaName="openmrs"
+                     tableName="bl_sale_order_by_quote_line"
+                     unique="true">
+            <column name="uuid" type="char"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- A table to store installments in payment collected for a certain sale order. -->
+    <changeSet id="billing_order_pay_installment" author="Eric Mwailunga" dbms="mysql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="bl_order_pay_installment" />
+            </not>
+        </preConditions>
+        <comment>Creating table to store installments in payment collected for a certain sale order. </comment>
+        <createTable tableName="bl_order_pay_installment">
+            <column name="entry_no" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+
+            <column name="installment_no" type="int">
+                <constraints nullable="false"  unique="false"/>
+            </column>
+
+            <column name="soql_no" type="int">
+                <constraints nullable="false"  unique="false"/>
+            </column>
+
+            <column name="paid_amount" type="double" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="receipt" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="received_by" type="int">
+                <constraints nullable="false" />
+            </column>
+            <column name="date_created" type="datetime">
+                <constraints nullable="false" />
+            </column>
+            <column name="uuid" type="char(58)">
+                <constraints nullable="false" unique="true" />
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint constraintName="fk_bl_order_pay_installment_soql_no"
+                                 baseTableName="bl_order_pay_installment" baseColumnNames="soql_no"
+                                 referencedTableName="bl_sale_order_by_quote" referencedColumnNames="soq_no"  onDelete="CASCADE" onUpdate="CASCADE"/>
+
+        <createIndex indexName="ind_bl_order_pay_installment_receipt"
+                     schemaName="openmrs"
+                     tableName="bl_order_pay_installment">
+            <column name="receipt" type="char"/>
+        </createIndex>
+        <createIndex indexName="ind_bl_order_pay_installment_received_by"
+                     schemaName="openmrs"
+                     tableName="bl_order_pay_installment">
+            <column name="received_by" type="int"/>
+        </createIndex>
+        <createIndex indexName="ind_bl_order_pay_installment_date_created"
+                     schemaName="openmrs"
+                     tableName="bl_order_pay_installment">
+            <column name="date_created" type="datetime"/>
+        </createIndex>
+        <createIndex indexName="ind_bl_order_pay_installment_uuid"
+                     schemaName="openmrs"
+                     tableName="bl_order_pay_installment"
+                     unique="true">
+            <column name="uuid" type="char"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
